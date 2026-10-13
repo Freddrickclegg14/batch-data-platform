@@ -1,6 +1,7 @@
 # import pytest
 
 FILE_COLUMNS = [
+    "reference_pool_id",  # position 1: Reference Pool ID (always blank for SF files)
     "loan_identifier",  # position 2: Loan Identifier
     "monthly_reporting_period",  # position 3: Monthly Reporting Period
     "channel",  # position 4: Channel
@@ -116,5 +117,5 @@ FILE_COLUMNS = [
     "origination_vantagescore_4_0",  # position 114: Origination VantageScore® 4.0
 ]
 
-assert len(FILE_COLUMNS) == 113
+assert len(FILE_COLUMNS) == 114
 assert len(set(FILE_COLUMNS)) == len(FILE_COLUMNS)

@@ -11,7 +11,7 @@ from ingestion.fannie_mae_columns import FILE_COLUMNS
 ZIP_PATH = Path("C:/Users/User/Downloads/2008Q1.zip")
 CSV_FILENAME_ZIP = "2008Q1.csv"
 OUT_DIR = Path("data/raw/fannie_mae")
-CHUNK_SIZE = 200_000
+CHUNK_SIZE = 500_000
 
 
 def convert(zip_path: Path, csv_name: str, out_dir: Path) -> Path:
