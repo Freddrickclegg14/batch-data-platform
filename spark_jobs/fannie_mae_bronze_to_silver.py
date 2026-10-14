@@ -23,41 +23,124 @@ def cast_columns(df: DataFrame) -> DataFrame:
             expr = F.col(col_name).alias(col_name)
         select_exprs.append(expr)
 
+    vintage_expr = F.regexp_extract(F.input_file_name(), r"(\d{4}Q[1-4])", 1).alias(
+        "vintage_quarter"
+    )
+    select_exprs.append(vintage_expr)
+
     return df.select(*select_exprs)
 
 
 def quality_flags(df: DataFrame) -> DataFrame:
+    checked_fields = {
+        "loan_identifier",
+        "monthly_reporting_period",
+        "original_upb",
+        "current_actual_upb",
+        "original_interest_rate",
+        "current_interest_rate",
+        "loan_age",
+        "original_loan_to_value_ratio_ltv",
+        "debt_to_income_dti",
+        "borrower_credit_score_at_origination",
+        "property_state",
+        "channel",
+        "occupancy_status",
+        "zero_balance_code",
+        "current_loan_delinquency_status",
+    }
+    assert checked_fields == set(CRITICAL_FIELDS), (
+        f"quality_flags checks and CRITICAL_FIELDS have drifted apart.\n"
+        f"In checks but not CRITICAL_FIELDS: {checked_fields - set(CRITICAL_FIELDS)}\n"
+        f"In CRITICAL_FIELDS but not checks: {set(CRITICAL_FIELDS) - checked_fields}"
+    )
     df = df.withColumn(
         "data_quality_flag",
-        F.when(F.col("loan_identifier").isNull(), F.lit("missing_loan_id"))
-        .when(F.col("monthly_reporting_period").isNull(), F.lit("No_reporting_period"))
+        F.when(
+            F.col("loan_identifier").isNull(),
+            F.lit("missing_loan_id"),
+        )
+        .when(
+            F.col("monthly_reporting_period").isNull(),
+            F.lit("No_reporting_period"),
+        )
         .when(
             F.col("original_upb").isNull() | (F.col("original_upb") <= 0),
             F.lit("invalid_original_upb"),
         )
-        .when(F.col("current_actual_upb") < 0, F.lit("negative_current_upb"))
+        .when(
+            F.col("current_actual_upb").isNull() | (F.col("current_actual_upb") < 0),
+            F.lit("negative_current_upb"),
+        )
         .when(
             F.col("original_interest_rate").isNull()
             | (F.col("original_interest_rate") < 0)
             | (F.col("original_interest_rate") > 25),
             F.lit("invalid_interest_rate"),
         )
-        .when(F.col("loan_age") < 0, F.lit("negative_loan_age"))
         .when(
-            (F.col("original_loan_to_value_ratio_ltv") < 0)
+            F.col("loan_age").isNull() | (F.col("loan_age") < 0),
+            F.lit("negative_loan_age"),
+        )
+        .when(
+            F.col("original_loan_to_value_ratio_ltv").isNull()
+            | (F.col("original_loan_to_value_ratio_ltv") < 0)
             | (F.col("original_loan_to_value_ratio_ltv") > 200),
             F.lit("invalid_ltv"),
         )
         .when(
-            (F.col("debt_to_income_dti") < 0) | (F.col("debt_to_income_dti") > 100),
+            F.col("debt_to_income_dti").isNull()
+            | (F.col("debt_to_income_dti") < 0)
+            | (F.col("debt_to_income_dti") > 100),
             F.lit("invalid_dti"),
         )
         .when(
-            (F.col("borrower_credit_score_at_origination") < 300)
+            F.col("borrower_credit_score_at_origination").isNull()
+            | (F.col("borrower_credit_score_at_origination") < 300)
             | (F.col("borrower_credit_score_at_origination") > 850),
             F.lit("invalid_credit_score"),
         )
-        .when(F.length(F.col("property_state")) != 2, F.lit("invalid_state_code"))
+        .when(
+            F.col("property_state").isNull() | (F.length(F.col("property_state")) != 2),
+            F.lit("invalid_state_code"),
+        )
+        .when(
+            F.col("channel").isNull() | (~F.col("channel").isin("R", "C", "B")),
+            F.lit("invalid_channel"),
+        )
+        .when(
+            F.col("occupancy_status").isNull()
+            | (~F.col("occupancy_status").isin("P", "S", "I")),
+            F.lit("invalid_occapancy_status"),
+        )
+        .when(
+            F.col("zero_balance_code").isNotNull()
+            & (F.col("zero_balance_code") != "")
+            & (
+                ~F.col("zero_balance_code").isin(
+                    "01", "02", "03", "06", "09", "15", "16", "96", "97"
+                )
+            ),
+            F.lit("invalid_zero_balance_code"),
+        )
+        .when(
+            F.col("current_loan_delinquency_status").isNull()
+            | (
+                (F.col("current_loan_delinquency_status") != "XX")
+                & (
+                    F.col("current_loan_delinquency_status")
+                    .cast(IntegerType())
+                    .isNull()
+                )
+            ),
+            F.lit("invalid_current_loan_delinquency_status"),
+        )
+        .when(
+            F.col("current_interest_rate").isNull()
+            | (F.col("current_interest_rate") < 0)
+            | (F.col("current_interest_rate") > 25),
+            F.lit("invalid_current_interest_rate"),
+        )
         .otherwise(F.lit(None)),
     )
 
@@ -94,7 +177,7 @@ def run() -> dict:
 
     silver_count = silver_df.count()
     print(
-        f"Wrote {silver_count:,} rows, {len(SILVER_COLUMNS) + 1} columns to {out_path}"
+        f"Wrote {silver_count:,} rows, {len(SILVER_COLUMNS) + 2} columns to {out_path}"
     )
 
     spark.stop()

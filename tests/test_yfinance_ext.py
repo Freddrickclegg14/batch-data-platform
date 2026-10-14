@@ -4,7 +4,6 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-
 # The output directory the pipeline writes into.
 OUTPUT_DIR = Path("data/raw/yfinance")
 
