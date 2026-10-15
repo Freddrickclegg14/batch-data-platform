@@ -12,6 +12,7 @@ env/
 build/
 develop-eggs/
 data/
+dbt-runner-key.json
 dist/
 downloads/
 eggs/
@@ -26,6 +27,7 @@ wheels/
 .installed.cfg
 *.egg
 .terraform/
+terraform.tfvars
 *.tfstate
 *.tfstate.backup
 
