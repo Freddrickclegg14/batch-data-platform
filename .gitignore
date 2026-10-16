@@ -30,6 +30,7 @@ wheels/
 terraform.tfvars
 *.tfstate
 *.tfstate.backup
+**/profiles.yml
 
 
 
