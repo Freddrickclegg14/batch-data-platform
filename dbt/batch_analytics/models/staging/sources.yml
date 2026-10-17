@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: staging_bq
+    description: >
+      Raw-loaded tables in the BigQuery `staging` dataset -- Fannie Mae
+      Silver output and yfinance Bronze output, loaded via
+      ingestion/load_to_bigquery.py. dbt treats these as read-only
+      inputs; models here build on top of them, never write back.
+    database: dolapo-de-portfolio-batch
+    schema: staging
+    tables:
+      - name: fannie_mae_loan_performance
+        description: >
+          Fannie Mae Single-Family Loan Performance, Silver layer (73
+          validated/typed fields + vintage_quarter + data_quality_flag),
+          covering 2008Q1 and 2024Q1 acquisition quarters.
+        columns:
+          - name: loan_identifier  
+            description: Unique_loan_identifier.
+          - name: monthly_reporting_period
+            description: The month this performance row reports on
+          - name: vintage_quarter
+            description: Which acquisition quarter this loan originated in (2008Q1 or 2024Q1).
+          - name: data_quality_flag
+            description: Null if the row passed all critical-field checks; otherwise names the first failed check.
+ 
+      - name: yfinance_prices
+        description: >
+          Daily price data for 10 tickers (equities, an index, gold,
+          crude oil, and Bitcoin), Bronze layer -- already row-validated
+          at ingestion via the PriceRecord pydantic schema.
+        columns:
+          - name: ticker
+            description: Security identifier.
+          - name: date
+            description: Trading date (T-1 only -- current day excluded until market close).                       
