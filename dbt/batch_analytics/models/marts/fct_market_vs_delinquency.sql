@@ -1,3 +1,5 @@
+--Working on formula
+
 {% set lag_months = var('delinquency_lag_months', 3) %}
  
 with market_daily as (
