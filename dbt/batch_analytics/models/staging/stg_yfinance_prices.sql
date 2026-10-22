@@ -14,3 +14,7 @@ cleaned as (
     from source
 )
 select * from cleaned
+qualify row_number() over (
+    partition by ticker, date 
+    order by close desc
+) = 1

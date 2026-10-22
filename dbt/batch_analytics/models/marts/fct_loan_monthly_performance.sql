@@ -7,7 +7,7 @@ monthly as (
     select
         loan_identifier,
         monthly_reporting_period,
-        vintages_quarter,
+        vintage_quarter,
         current_interest_rate,
         current_actual_upb,
         loan_age,

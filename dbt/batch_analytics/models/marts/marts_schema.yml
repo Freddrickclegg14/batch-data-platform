@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: dim_loan
+    description: One row per loan -- characteristics at origination
+    columns:
+      - name: loan_identifier
+        description: Unique loan identifier (primary key of this table)
+        data_tests:
+          - unique
+          - not_null
+
+  - name: fct_loan_monthly_performance
+    description: One row per (loan_identifier, monthly_reporting_period) -- time_varying performance facts.
+    columns:
+      - name: loan_identifier
+        description: Foreign key to dim_loan
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_loan')
+                field: loan_identifier
+      - name: monthly_reporting_period
+        data_tests:
+         - not_null
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - loan_identifier
+              - monthly_reporting_period
+  
+  - name: fct_delinquency_by_vintage
+    description: Aggregate delinquency rate per (vintage_quarterx, monthly_reporting_period).
+    columns:
+      - name: vintage_quarter
+        data_tests:
+          - not_null
+      - name: monthly_reporting_period
+        data_tests:
+          - not_null
+      - name: delinquency_rate
+        description: Fraction of loans (with known status) that are 90+ days delinquent
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - vintage_quarter
+              - monthly_reporting_period
+
+  - name: fct_market_vs_delinquency
+    description: Market returns (lagged) joined against aggregated deliquency rate
+    columns:
+     - name: market_month
+       data_tests:
+        - not_null

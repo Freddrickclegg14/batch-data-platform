@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: stg_fannie_mae_loan_performance
+    description: Cleaned Fannie Mae loan performance rows -- excludes rows that failed a critical-field check (data_quality_flag).
+    columns:
+      - name: loan_identifier
+        description: Unique loan identifier
+        data_tests:
+          - not_null
+      - name: monthly_reporting_period
+        description: The month this performance row reports on.
+        data_tests:
+          - not_null
+      - name: vintage_quarter
+        description: Acquisition quarter (2008Q1 or 2024Q1).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["2008Q1","2024Q1"]
+      - name: data_quality_flag
+        description: Should always be null here -- staging filters out flagged rows.
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: 
+              - loan_identifier
+              - monthly_reporting_period
+
+  - name: stg_yfinance_prices
+    description: Validated daily price data (validated at ingestion via PriceRecord).
+    columns:
+      - name: ticker
+        description: security identifier
+        data_tests:
+          - not_null
+      - name: date
+        description: Trading date
+        data_tests:
+          - not_null
+      - name: close
+        description: closing_price
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "> 0"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - ticker
+              - date

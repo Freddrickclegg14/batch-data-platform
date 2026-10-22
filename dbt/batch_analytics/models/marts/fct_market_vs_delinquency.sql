@@ -1,5 +1,3 @@
---Working on formula
-
 {% set lag_months = var('delinquency_lag_months', 3) %}
  
 with market_daily as (
@@ -11,7 +9,6 @@ with market_daily as (
 market_monthly as (
     select
         date_trunc(date, month) as month,
-        -- last trading day's close for that month
         array_agg(close order by date desc limit 1)[offset(0)] as month_end_close
     from market_daily
     group by month
