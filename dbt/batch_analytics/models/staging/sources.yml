@@ -16,15 +16,18 @@ sources:
           validated/typed fields + vintage_quarter + data_quality_flag),
           covering 2008Q1 and 2024Q1 acquisition quarters.
         columns:
-          - name: loan_identifier  
-            description: Unique_loan_identifier.
+          - name: loan_identifier
+            description: Unique loan identifier.
           - name: monthly_reporting_period
-            description: The month this performance row reports on
-          - name: vintage_quarter
-            description: Which acquisition quarter this loan originated in (2008Q1 or 2024Q1).
+            description: The month this performance row reports on.
+          - name: vintages_quarter
+            description: >
+              Acquisition quarter (2008Q1 or 2024Q1). Source column is
+              misspelled "vintages_quarter"; stg_fannie_mae_loan_performance
+              aliases it to "vintage_quarter" for downstream models.
           - name: data_quality_flag
             description: Null if the row passed all critical-field checks; otherwise names the first failed check.
- 
+
       - name: yfinance_prices
         description: >
           Daily price data for 10 tickers (equities, an index, gold,
@@ -34,4 +37,4 @@ sources:
           - name: ticker
             description: Security identifier.
           - name: date
-            description: Trading date (T-1 only -- current day excluded until market close).                       
+            description: Trading date (T-1 only -- current day excluded until market close).
