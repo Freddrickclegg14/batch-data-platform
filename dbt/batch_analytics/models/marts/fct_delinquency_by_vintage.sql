@@ -5,7 +5,7 @@ with monthly_performance as (
  
 classified as (
     select
-        vintages_quarter,
+        vintage_quarter,
         monthly_reporting_period,
         loan_identifier,
         case
@@ -19,7 +19,7 @@ classified as (
  
 aggregated as (
     select
-        vintages_quarter,
+        vintage_quarter,
         monthly_reporting_period,
         count(*) as total_loans_reported,
         countif(is_seriously_delinquent is not null) as loans_with_known_status,
@@ -29,9 +29,9 @@ aggregated as (
             countif(is_seriously_delinquent is not null)
         ) as delinquency_rate
     from classified
-    group by vintages_quarter, monthly_reporting_period
+    group by vintage_quarter, monthly_reporting_period
 )
  
 select * from aggregated
-order by vintages_quarter, monthly_reporting_period
+order by vintage_quarter, monthly_reporting_period
  

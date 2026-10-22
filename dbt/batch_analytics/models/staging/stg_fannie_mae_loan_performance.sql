@@ -6,7 +6,7 @@ cleaned AS (
     select 
         loan_identifier,
         monthly_reporting_period,
-        vintages_quarter,
+        vintages_quarter as vintage_quarter,
         channel,
         seller_name,
         servicer_name,

@@ -9,7 +9,7 @@ one_row_per_loan as (
         current_actual_upb as current_upb,
         original_loan_to_value_ratio_ltv as ltv,
         borrower_credit_score_at_origination as credit_score,
-        vintages_quarter,
+        vintage_quarter,
         first_payment_date,
         maturity_date,
         monthly_reporting_period as first_reported_month
