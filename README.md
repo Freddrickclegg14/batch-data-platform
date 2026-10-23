@@ -8,10 +8,10 @@ A batch data engineering pipeline integrating Fannie Mae Single-Family Loan Perf
 
 - [x] Phase 1: Foundation (repo, ingestion, schemas, raw storage)
 - [x] Phase 2: Core processing (Bronze -> Silver transforms)
-- [x] Phase 7 (partial): Cloud infrastructure via Terraform
 - [x] dbt staging + mart models, first analytical result
-- [ ] Orchestration (Prefect)
+- [x] Orchestration (Prefect)
 - [ ] CI/CD
+- [x] Phase 7 (partial): Cloud infrastructure via Terraform
 - [ ] Portfolio showcase page
 
 ## Layout
@@ -75,3 +75,14 @@ This points to the result being dominated by **loan seasoning** (delinquency nat
 ## Setup
 
 See `dbt/batch_analytics/` for dbt project setup and `terraform/` for infrastructure provisioning. Local Python environment managed via `uv` (`uv sync`).
+
+## Orchestration (Prefect)
+
+`flows/batch_pipeline_flow.py` orchestrates the pipeline's recurring parts: yfinance extraction, BigQuery load, and a dbt build (run + test in one pass). Each step is a retryable Prefect task; a failure in `dbt build` stops the flow rather than letting later steps run against bad data.
+
+### Incremental BigQuery loading
+Earlier iterations reloaded the entire 26.8M-row Fannie Mae table on every run via `WRITE_TRUNCATE` -- correct, but wasteful: ~4 minutes and real BigQuery load-job quota spent reloading data that hadn't changed. `ingestion/load_fannie_mae_incremental.py` replaces this with a staging-table + `MERGE` pattern: new data lands in a temporary table, then only loan-months not already present (keyed on `loan_identifier` + `monthly_reporting_period`) are inserted into the real table. Existing rows are never touched, matching how Fannie Mae's actual publishing works -- each release appends new months, it doesn't revise historical ones.
+
+This also gives a real, measured idempotency guarantee rather than just a design claim: re-running the incremental load against unchanged data produced **0 new rows** (26,845,234 -> 26,845,234), confirmed directly against the live table, not assumed.
+
+yfinance's BigQuery load stays a full reload each run (`run_yfinance_only()` in `ingestion/load_to_bigquery.py`) -- its table is small (a few thousand rows), so a full reload costs nothing meaningful, and the extraction step itself is already incremental (see T-1 processing, above).
