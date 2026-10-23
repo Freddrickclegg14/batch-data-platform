@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install uv
-        uses: astral-sh/setup-uv@3
+        uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      
+
       - name: Set up Python
         run: uv python install 3.12
 
@@ -28,10 +28,10 @@ jobs:
         run: uv run ruff check .
 
       - name: Run tests
-        run: uv run pytest tests/-v
+        run: uv run pytest tests/ -v
 
   dbt-parse:
-    name: dbt project validation
+    name: dbt project validation (no live connection)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -42,8 +42,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
-          enable-cache: True
-        
+          enable-cache: true
+
       - name: Set up Python
         run: uv python install 3.12
 
@@ -54,10 +54,10 @@ jobs:
       - name: Install dbt packages
         run: uv run dbt deps
 
-      - name: dummy profile
+      - name: Write dummy profile
         run: |
           mkdir -p ~/.dbt
-          cat > ~/.dbt/profiles.yml <<< 'PROFILE'
+          cat > ~/.dbt/profiles.yml << 'PROFILE'
           batch_analytics:
             target: ci
             outputs:
@@ -66,10 +66,10 @@ jobs:
                 method: service-account
                 project: ci-placeholder-project
                 dataset: marts
-                ketfile: /dev/null
+                keyfile: /dev/null
                 threads: 1
                 location: us-central1
           PROFILE
-        
-      - name: dbt parse (validates refs, sources, YAML -- no bigquery)
+
+      - name: dbt parse (validates refs, sources, YAML -- no BigQuery connection)
         run: uv run dbt parse
