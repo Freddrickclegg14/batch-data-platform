@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint + Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@3
+        with:
+          enable-cache: true
+      
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Run tests
+        run: uv run pytest tests/-v
+
+  dbt-parse:
+    name: dbt project validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt/batch_analytics
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: True
+        
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+        working-directory: .
+
+      - name: Install dbt packages
+        run: uv run dbt deps
+
+      - name: dummy profile
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<< 'PROFILE'
+          batch_analytics:
+            target: ci
+            outputs:
+              ci:
+                type: bigquery
+                method: service-account
+                project: ci-placeholder-project
+                dataset: marts
+                ketfile: /dev/null
+                threads: 1
+                location: us-central1
+          PROFILE
+        
+      - name: dbt parse (validates refs, sources, YAML -- no bigquery)
+        run: uv run dbt parse
