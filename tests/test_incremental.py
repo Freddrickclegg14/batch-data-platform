@@ -8,7 +8,7 @@ exactly the kind of bug we just fixed by hand: run() calling fetch_ticker
 for a ticker that should have been skipped.
 """
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -33,7 +33,7 @@ class FakeTicker:
 
         # One realistic, valid row -- enough for fetch_ticker to build a
         # PriceRecord without hitting the real API.
-        index = pd.DatetimeIndex([pd.Timestamp.now(tz=timezone.utc)])
+        index = pd.DatetimeIndex([pd.Timestamp.now(tz=UTC)])
         return pd.DataFrame(
             {
                 "Open": [100.0],
@@ -78,7 +78,7 @@ def write_watermark_file(fake_raw_dir: Path, ticker: str, last_date: date):
 
 
 def test_up_to_date_ticker_is_not_fetched(fake_raw_dir, monkeypatch):
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     write_watermark_file(fake_raw_dir, "NVDA", today)
 
     monkeypatch.setattr(yfinance_ext.yf, "Ticker", FakeTicker)
@@ -91,7 +91,7 @@ def test_up_to_date_ticker_is_not_fetched(fake_raw_dir, monkeypatch):
 
 
 def test_stale_ticker_is_fetched_with_correct_start_date(fake_raw_dir, monkeypatch):
-    last_date = datetime.now(timezone.utc).date() - timedelta(days=5)
+    last_date = datetime.now(UTC).date() - timedelta(days=5)
     write_watermark_file(fake_raw_dir, "NVDA", last_date)
 
     monkeypatch.setattr(yfinance_ext.yf, "Ticker", FakeTicker)
@@ -121,7 +121,7 @@ def test_new_ticker_triggers_full_year_pull(fake_raw_dir, monkeypatch):
 
 
 def test_all_tickers_up_to_date_does_not_raise(fake_raw_dir, monkeypatch):
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     write_watermark_file(fake_raw_dir, "NVDA", today)
     write_watermark_file(fake_raw_dir, "JPM", today)
 

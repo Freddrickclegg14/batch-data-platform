@@ -1,9 +1,9 @@
-from datetime import datetime, date, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 from pydantic import ValidationError
 
-from ingestion.schemas import PriceRecord, IngestionBatch
+from ingestion.schemas import IngestionBatch, PriceRecord
 
 
 def valid_price_record_fields(**overrides):
@@ -17,7 +17,7 @@ def valid_price_record_fields(**overrides):
         "adj_close": 2324,
         "volume": 297512,
         "ingestion_timestamp": datetime(
-            2026, 10, 8, 0, 44, 27, 666729, tzinfo=timezone.utc
+            2026, 10, 8, 0, 44, 27, 666729, tzinfo=UTC
         ),
     }
     base.update(overrides)
@@ -77,7 +77,7 @@ def test_missing_required_field_is_rejected():
 
 
 def test_valid_ingestion_batch_is_accepted():
-    started = datetime(2026, 10, 8, 0, 44, 27, tzinfo=timezone.utc)
+    started = datetime(2026, 10, 8, 0, 44, 27, tzinfo=UTC)
     batch = IngestionBatch(
         pipeline_run_id="run-2026-10-08-001",
         tickers=["GC=F", "NVDA"],
@@ -96,6 +96,6 @@ def test_negative_record_count_is_rejected():
         IngestionBatch(
             pipeline_run_id="run-1",
             tickers=["AAPL"],
-            started_at=datetime(2024, 1, 2, tzinfo=timezone.utc),
+            started_at=datetime(2024, 1, 2, tzinfo=UTC),
             record_count=-1,
         )

@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import IntegerType, DoubleType
+from pyspark.sql.types import DoubleType, IntegerType
 
-from spark_jobs.fannie_mae_silver_columns import SILVER_COLUMNS, CRITICAL_FIELDS
+from spark_jobs.fannie_mae_silver_columns import CRITICAL_FIELDS, SILVER_COLUMNS
 
 bronze_dir = Path("data/raw/fannie_mae")
 silver_dir = Path("data/silver/fannie_mae")

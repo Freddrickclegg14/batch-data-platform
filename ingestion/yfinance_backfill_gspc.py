@@ -15,7 +15,7 @@ Usage:
     uv run python -m ingestion.yfinance_backfill_gspc
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -29,7 +29,7 @@ START_DATE = "2007-01-01"
 
 
 def run():
-    ingestion_timestamp = datetime.now(timezone.utc)
+    ingestion_timestamp = datetime.now(UTC)
 
     print(f"Backfilling {TICKER} from {START_DATE}...")
     data = yf.Ticker(TICKER).history(start=START_DATE, interval="1d")

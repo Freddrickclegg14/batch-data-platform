@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -79,7 +79,7 @@ def fetch_ticker(
 
 def run() -> IngestionBatch:
     run_id = str(uuid.uuid4())
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
 
     last_dates = get_last_dates()
     print(f"Watermarks found for {len(last_dates)} ticker(s)")

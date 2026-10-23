@@ -15,7 +15,7 @@ from pathlib import Path
 
 from google.cloud import bigquery, storage
 
-from ingestion.load_to_bigquery import PROJECT_ID, BUCKET_NAME, DATASET, upload_to_gcs
+from ingestion.load_to_bigquery import DATASET, PROJECT_ID, upload_to_gcs
 
 TARGET_TABLE = "fannie_mae_loan_performance"
 STAGING_TABLE = "_staging_fannie_mae_incoming"  # temp table, dropped after merge
