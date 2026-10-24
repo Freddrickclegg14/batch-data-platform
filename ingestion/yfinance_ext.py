@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 import yfinance as yf
+from pydantic import ValidationError
 
 from ingestion.schemas import IngestionBatch, PriceRecord
 
@@ -71,7 +72,7 @@ def fetch_ticker(
                 ingestion_timestamp=ingestion_timestamp,
             )
             records.append(record)
-        except Exception as e:
+        except ValidationError as e:
             print(f"  SKIPPED bad row for {ticker} on {trade_date.date()}: {e}")
 
     return records

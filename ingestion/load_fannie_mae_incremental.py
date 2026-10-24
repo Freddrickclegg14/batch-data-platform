@@ -13,6 +13,7 @@ Usage:
 
 from pathlib import Path
 
+from google.api_core.exceptions import NotFound
 from google.cloud import bigquery, storage
 
 from ingestion.load_to_bigquery import DATASET, PROJECT_ID, upload_to_gcs
@@ -52,7 +53,7 @@ def run():
     try:
         bq_client.get_table(target_ref)
         target_exists = True
-    except Exception:
+    except NotFound:
         target_exists = False
 
     if not target_exists:

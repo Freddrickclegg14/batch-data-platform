@@ -10,6 +10,7 @@ for a ticker that should have been skipped.
 
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 import pytest
@@ -18,7 +19,7 @@ from ingestion import yfinance_ext
 
 
 class FakeTicker:
-    calls = []  # class-level, so tests can inspect what was requested
+    calls: ClassVar[list] = []  # class-level, so tests can inspect what was requested
     # Set this per-test to control whether history() returns a row or
     # stays empty. Default: one valid row, so run() can succeed.
     return_empty = False
