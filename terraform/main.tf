@@ -75,9 +75,19 @@ resource "google_project_iam_member" "dbt_bq_job_user" {
   member  = "serviceAccount:${google_service_account.dbt_runner.email}"
 }
 
-resource "google_storage_bucket_iam_member" "dbt_gcs_reader" {
+# Why: GCS implements overwriting an existing object as delete + create
+# under the hood, even for a plain "upload" call. objectCreator alone
+# (create-only) isn't enough once a run re-uploads a filename that
+# already exists in the bucket -- which happens on every run after the
+# first, since the Fannie Mae part-file names never change.
+#
+# objectAdmin (create/delete/get/list) is still scoped to just THIS
+# bucket via the `bucket =` argument below -- it grants nothing on any
+# other bucket or resource in the project.
+
+resource "google_storage_bucket_iam_member" "dbt_gcs_admin" {
   bucket = google_storage_bucket.staging.name
-  role   = "roles/storage.objectViewer"
+  role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.dbt_runner.email}"
 }
 

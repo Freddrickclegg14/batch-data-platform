@@ -29,8 +29,9 @@ def run_dbt_build():
         cwd=DBT_PROJECT_DIR,
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
     )
+    print("=== dbt stdout ===")
     print(result.stdout)
     if result.returncode != 0:
         print(result.stderr)

@@ -1,0 +1,16 @@
+.venv/
+.git/
+data/
+terraform/
+dbt/batch_analytics/profiles.yml
+dbt/batch_analytics/dbt_packages/
+dbt/batch_analytics/target/
+dbt/batch_analytics/logs/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+tests/
+docs/
+.github/
+*.md
